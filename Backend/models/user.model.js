@@ -19,10 +19,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    minlength: [5, "Email must be at least 5 characters long"],
+    match: [/\S+@\S+\.\S+/, "Please enter a valid email address"],
+   
   },
   password: { type: String, required: true, select: false },
   socketID: { type: String },
+
 });
 
 
