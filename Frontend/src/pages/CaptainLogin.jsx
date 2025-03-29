@@ -1,17 +1,49 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { CaptainDataContext } from "../context/CaptainContext"; 
 
 const CaptainLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [captainData, setCaptainData] = useState({});
+  const navigate = useNavigate();
+  const { captain, setCaptain } = React.useContext(CaptainDataContext);
+ 
 
-  const submitHandler = (e) => {
+  const submitHandler = async (e) => {
     e.preventDefault();
-    setCaptainData({ email, password });
+  
+    const captain = {
+      email: email,
+      password: password,
+    };
+  
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/captains/login`,
+        captain
+      );
+  
+      if (response.status === 200) {
+        const data = response.data;
+        setCaptain(data.captain);
+        localStorage.setItem("token", data.token);
+        navigate("/captainhome");
+      }
+    } catch (error) {
+      // Handle errors properly
+      if (error.response) {
+        alert(error.response.data.message || "Invalid email or password");
+      } else {
+        alert("Something went wrong. Please try again.");
+      }
+    }
+  
     setEmail("");
     setPassword("");
   };
+  
 
   return (
     <div className="flex flex-col justify-between min-h-screen p-7 max-w-md mx-auto md:max-w-lg lg:max-w-xl">

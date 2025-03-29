@@ -1,6 +1,8 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import axios from "axios";
+import {UserDataContext} from "../context/userContext";
 
 const UserSignUp = () => {
   const [firstName, setfirstName] = useState("");
@@ -9,16 +11,83 @@ const UserSignUp = () => {
   const [password, setPassword] = useState("");
   const [userData, setUserData] = useState({});
 
-  const submitHandler = (e) => {
-    e.preventDefault();
-    setUserData({ username:{firstName:firstName, lastName:lastName}, email: email, password: password });
-    
-    setEmail("");
-    setPassword("");
-    setfirstName("");
-    setlastName("");
-  };
+  const navigate = useNavigate();
 
+  const { user, setUser } = React.useContext(UserDataContext);
+
+  // const submitHandler = async (e) => {
+  //   e.preventDefault();
+  //   const newUser ={
+  //     Fullname:{firstname:firstName, lastname:lastName},
+  //     email: email,
+  //     password: password
+  //   }
+
+  //   const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/users/register`, newUser,{
+      
+  //       headers: {
+  //         "Content-Type": "application/json"
+  //       }
+  //   });
+  //   console.log(response.data);
+     
+  //   if(response.status === 201){
+  //     const data = response.data;
+
+  //     setUser(data.user);
+
+  //     navigate("/home");
+  //   }
+
+  //   setEmail("");
+  //   setPassword("");
+  //   setfirstName("");
+  //   setlastName("");
+  // };
+
+  const submitHandler = async (e) => {
+    e.preventDefault();
+    const newUser = {
+      fullname: { firstname: firstName, lastname: lastName },
+      email: email,
+      password: password,
+    };
+  
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/users/register`,
+        newUser,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+  
+      
+  
+      if (response.status === 201) {
+        setUser(response.data.user);
+        localStorage.setItem("token", data.token);
+        navigate("/home");
+      }
+  
+      // Reset form fields
+      setEmail("");
+      setPassword("");
+      setfirstName("");
+      setlastName("");
+    } catch (error) {
+      if (error.response) {
+        console.error("Server Error:", error.response.data);
+        alert(error.response.data.message || "Signup failed. Check input fields.");
+      } else {
+        console.error("Network Error:", error.message);
+        alert("Network error. Please try again later.");
+      }
+    }
+  };
+  
   return (
     <div className="flex flex-col justify-between min-h-screen p-7 max-w-md mx-auto md:max-w-lg lg:max-w-xl">
       <div>

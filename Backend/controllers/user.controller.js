@@ -83,11 +83,36 @@ module.exports.getUserProfile = async (req, res, next) => {
    res.status(200).json( req.user );
 }
 
+
+
+
+
+
+
 module.exports.logoutUser = async (req, res, next) => {
-  res.clearCookie('token');
+  try {
+    res.clearCookie('token', { httpOnly: true, secure: true, sameSite: 'None' });
 
-  const token = req.cookies.token || req.headers.authorization.split(' ')[1];
+    const token = req.cookies?.token || (req.headers.authorization ? req.headers.authorization.split(' ')[1] : null);
 
-  await blacklistTokenModel.create({ token });
-  res.status(200).json({ message: 'Logout successful' });
-}
+    if (!token) {
+      return res.status(401).json({ message: 'Unauthorized: No token provided' });
+    }
+
+    // Insert token into blacklist, ignoring duplicate errors
+    try {
+      await blacklistTokenModel.create({ token });
+      
+    } catch (error) {
+      if (error.code === 11000) {
+      } else {
+        throw error; // Only throw if it's not a duplicate error
+      }
+    }
+
+    return res.status(200).json({ message: 'Logout successful' });
+  } catch (error) {
+   
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
